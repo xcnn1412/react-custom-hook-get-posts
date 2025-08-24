@@ -1,29 +1,10 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import useBlogPosts from "../../hook/useBlogPosts";
 
 function HomePage() {
   const navigate = useNavigate();
 
-  const [posts, setPosts] = useState([]);
-  const [isError, setIsError] = useState(null);
-  const [isLoading, setIsLoading] = useState(null);
-
-  const getPosts = async () => {
-    try {
-      setIsError(false);
-      setIsLoading(true);
-      const results = await axios("http://localhost:4000/posts");
-      setPosts(results.data.data);
-      setIsLoading(false);
-    } catch (error) {
-      setIsError(true);
-    }
-  };
-
-  useEffect(() => {
-    getPosts();
-  }, []);
+  const { blogPosts, isLoading, isError } = useBlogPosts();
 
   return (
     <div>
@@ -32,7 +13,10 @@ function HomePage() {
         <button>Create Post</button>
       </div>
       <div className="board">
-        {posts.map((post) => {
+        {isLoading && <h1>Loading ....</h1>}
+        {isError && <h1>Request failed</h1>}
+
+        {blogPosts.map((post) => {
           return (
             <div key={post.id} className="post">
               <h1>{post.title}</h1>
@@ -51,8 +35,6 @@ function HomePage() {
           );
         })}
       </div>
-      {isError ? <h1>Request failed</h1> : null}
-      {isLoading ? <h1>Loading ....</h1> : null}
     </div>
   );
 }
