@@ -1,56 +1,48 @@
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useParams, Link } from "react-router-dom";
+import useBlogPosts from "../../hook/useBlogPosts";
 
 function ViewPostPage() {
-  const navigate = useNavigate();
+  const { id } = useParams();
+  const { blogPosts, isLoading, isError } = useBlogPosts();
+  
+  const post = blogPosts.find(p => p.id === parseInt(id));
 
-  const [posts, setPosts] = useState([]);
-  const [isError, setIsError] = useState(null);
-  const [isLoading, setIsLoading] = useState(null);
+  if (isLoading) {
+    return (
+      <div>
+        <Link to="/">← Back to Posts</Link>
+        <div>Loading ...</div>
+      </div>
+    );
+  }
 
-  const getPosts = async () => {
-    try {
-      setIsError(false);
-      setIsLoading(true);
-      const results = await axios("http://localhost:4000/posts");
-      setPosts(results.data.data);
-      setIsLoading(false);
-    } catch (error) {
-      setIsError(true);
-    }
-  };
+  if (isError) {
+    return (
+      <div>
+        <Link to="/">← Back to Posts</Link>
+        <div>Request failed</div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    getPosts();
-  }, []);
+  if (!post) {
+    return (
+      <div>
+        <Link to="/">← Back to Posts</Link>
+        <div>Post not found</div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1>View Post Page</h1>
-      <div className="view-post-container">
-        <h2>Post Title</h2>
-        <p>Content</p>
-      </div>
-
-      <hr />
-      <div className="show-all-posts-container">
-        <h2>All Posts</h2>
-        {posts.map((post) => {
-          return (
-            <div key={post.id} className="post">
-              <h1>{post.title}</h1>
-              <div className="post-actions">
-                <button className="view-button">View post</button>
-              </div>
-            </div>
-          );
-        })}
-        {isError ? <h1>Request failed</h1> : null}
-        {isLoading ? <h1>Loading ....</h1> : null}
-      </div>
-
-      <button onClick={() => navigate("/")}>Back to Home</button>
+      <Link to="/">← Back to Posts</Link>
+      <h1>{post.title}</h1>
+      <p>By {post.author} • {post.createdAt}</p>
+      <p>{post.content}</p>
+      <Link to={`/post/edit/${post.id}`}>
+        <button>Edit Post</button>
+      </Link>
     </div>
   );
 }
